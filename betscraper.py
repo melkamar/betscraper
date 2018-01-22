@@ -1,7 +1,7 @@
+import logging
+import os
 import time
 from typing import List
-import logging
-import argparse
 
 from selenium import webdriver
 
@@ -44,10 +44,14 @@ class MatchResult:
         return f'({self._time_to_str()}) {self.home_name} ({self.home_score}-{self.away_score}) {self.away_name}'
 
 
-def init_driver(phantomjs_path):
-    logging.debug(f'Using phantomjs at path "{phantomjs_path}"')
-    driver = webdriver.PhantomJS(phantomjs_path)
-    driver.get(r'https://www.livesport.cz/hokej/')
+def init_driver():
+    try:
+        driver_path = os.environ['PHANTOMJS_PATH']
+    except KeyError:
+        driver_path = "phantomjs"
+
+    logging.debug(f'Using phantomjs at path "{driver_path}"')
+    driver = webdriver.PhantomJS(driver_path)
     return driver
 
 
@@ -111,21 +115,12 @@ def filter_almost_finished_draws(match_results: List[MatchResult]):
     return result
 
 
-def parse_args():
-    parser = argparse.ArgumentParser()
-    parser.add_argument('WEBHOOK_URL', help="URL of Slack webhook where to send messages.")
-    parser.add_argument('--phantomjs-path', help="Optional path to phantomjs if not on PATH.", default="phantomjs")
-    return parser.parse_args()
-
-
 def main():
     logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
     logging.getLogger('selenium.webdriver.remote.remote_connection').setLevel(logging.WARNING)
 
-    args = parse_args()
-
     time_start = time.time()
-    driver = init_driver(args.phantomjs_path)
+    driver = init_driver()
     res = parse_match_results(driver)
     report_matches = filter_almost_finished_draws(list(res.values()))
 
@@ -133,7 +128,7 @@ def main():
         newline = "\n"
         message = f'*Zápasy splňující podmínky:*\n\n' \
                   f'{newline.join(["  • "+str(report_match) for report_match in report_matches])}'
-        slack.send_message(message, args.WEBHOOK_URL)
+        slack.send_message(message)
 
     time_duration = time.time() - time_start
     logging.info(f'Took {time_duration:.2f} seconds')
