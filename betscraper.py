@@ -43,7 +43,7 @@ class MatchResult:
 
 
 def init_driver():
-    driver = webdriver.PhantomJS(r'd:\programs\phantomjs-2.1.1-windows\bin\phantomjs.exe')
+    driver = webdriver.PhantomJS()
     driver.get(r'https://www.livesport.cz/hokej/')
     return driver
 
