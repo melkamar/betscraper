@@ -1,8 +1,9 @@
 import requests
+import os
 
 
 def send_message(text):
-    webhook_url = r'https://hooks.slack.com/services/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'
+    webhook_url = os.environ['WEBHOOK_URL']
 
     payload = {
         "text": text,
