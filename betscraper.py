@@ -112,14 +112,16 @@ def main():
     res = parse_match_results(driver)
     report_matches = filter_almost_finished_draws(list(res.values()))
 
-    newline = "\n"
-    message = f'*Zápasy splňující podmínky:*\n\n' \
-              f'{newline.join(["  • "+str(report_match) for report_match in report_matches])}'
-    slack.send_message(message)
+    if report_matches:
+        newline = "\n"
+        message = f'*Zápasy splňující podmínky:*\n\n' \
+                  f'{newline.join(["  • "+str(report_match) for report_match in report_matches])}'
+        slack.send_message(message)
 
     time_duration = time.time() - time_start
     print(f'Took {time_duration:.2f} seconds')
     print(res)
+
 
 if __name__ == '__main__':
     main()
