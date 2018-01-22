@@ -101,6 +101,8 @@ def filter_almost_finished_draws(match_results: List[MatchResult]):
         if match_result.minute < 19:
             continue
 
+        # TODO check jestli je remíza
+
         result.append(match_result)
 
     return result
