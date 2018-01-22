@@ -1,5 +1,6 @@
 import time
 from typing import List
+import logging
 
 from selenium import webdriver
 
@@ -43,7 +44,14 @@ class MatchResult:
 
 
 def init_driver():
-    driver = webdriver.PhantomJS()
+    import os
+    try:
+        driver_path = os.environ['PHANTOMJS_PATH']
+    except KeyError:
+        driver_path = "phantomjs"
+
+    logging.debug(f'Using phantomjs at path "{driver_path}"')
+    driver = webdriver.PhantomJS(driver_path)
     driver.get(r'https://www.livesport.cz/hokej/')
     return driver
 
@@ -109,6 +117,8 @@ def filter_almost_finished_draws(match_results: List[MatchResult]):
 
 
 def main():
+    logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+
     time_start = time.time()
     driver = init_driver()
     res = parse_match_results(driver)
@@ -121,8 +131,8 @@ def main():
         slack.send_message(message)
 
     time_duration = time.time() - time_start
-    print(f'Took {time_duration:.2f} seconds')
-    print(res)
+    logging.info(f'Took {time_duration:.2f} seconds')
+    logging.info(res)
 
 
 if __name__ == '__main__':
