@@ -118,6 +118,7 @@ def filter_almost_finished_draws(match_results: List[MatchResult]):
 
 def main():
     logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+    logging.getLogger('selenium.webdriver.remote.remote_connection').setLevel(logging.WARNING)
 
     time_start = time.time()
     driver = init_driver()
