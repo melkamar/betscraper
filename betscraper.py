@@ -57,8 +57,8 @@ def init_driver():
 
 def parse_match_results(driver):
     match_rows_selector = r'tr.stage-live'
-    logging.debug(f'Finding elements matching {match_rows_selector}')
     score_elms = driver.find_elements_by_css_selector(match_rows_selector)
+    logging.debug(f'Found {len(score_elms)} elements matching {match_rows_selector}')
     scores_dict = {}
     for score_elm in score_elms:
         elm_id_full = score_elm.get_attribute('id')
