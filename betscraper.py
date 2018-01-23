@@ -127,9 +127,9 @@ def filter_almost_finished_draws(match_results: List[MatchResult]):
 
         if match_result.minute < 19:
             logging.debug(f'  > match minute not >=19, discarding')
-            continue
+            # continue
 
-        # TODO check jestli je remíza
+        # TODO check jestli je remíza, odkomentovat continue
 
         logging.debug(f'  > adding match to result')
         result.append(match_result)
