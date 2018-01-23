@@ -31,6 +31,7 @@ class MatchResult:
         self.away_name = None
         self.away_score = None
         self.link = None
+        self.third_period_filled_in = False
 
     def _time_to_str(self):
         if self.state == MatchResult.STATE_UNKNOWN:
@@ -99,6 +100,7 @@ def parse_element(score_elm, scores_dict):
         home_score = int(score_elm.find_element_by_css_selector(r'td.score-home').text)
         match_result.home_name = home_name
         match_result.home_score = home_score
+        match_result.third_period_filled_in = score_elm.find_element_by_css_selector('td.cell_sf').text.strip() != ''
 
         logging.debug(f'Setting properties on match: state {match_result.state} | period {match_result.period} | '
                       f'minute {match_result.minute} | home_name {match_result.home_name} | '
@@ -132,7 +134,11 @@ def filter_almost_finished_draws(match_results: List[MatchResult]):
     result = []
     for match_result in match_results:
         logging.debug(f'Filtering match result {match_result}')
-        if not match_result.state == MatchResult.STATE_LIVE:
+        if match_result.state == MatchResult.STATE_LIVE:
+            pass
+        elif match_result.state == MatchResult.STATE_PERIOD_PAUSE and match_result.third_period_filled_in:
+            pass
+        else:
             logging.debug(f'  > match not live, discarding')
             continue
 
@@ -141,7 +147,6 @@ def filter_almost_finished_draws(match_results: List[MatchResult]):
                 logging.debug(f'  > match minute not >=20, discarding')
                 continue
         elif match_result.period == MatchResult.PERIOD_OVERTIME:
-            # TODO detekovat přestávku před prodloužením
             if match_result.minute > 1:
                 logging.debug(f'  > match in overtime and minute >1, discarding')
                 continue
