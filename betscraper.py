@@ -52,6 +52,7 @@ def init_driver():
 
     logging.debug(f'Using phantomjs at path "{driver_path}"')
     driver = webdriver.PhantomJS(driver_path)
+    driver.get(r'https://www.livesport.cz/hokej/')
     return driver
 
 
