@@ -144,10 +144,13 @@ def main():
     report_matches = filter_almost_finished_draws(list(res.values()))
 
     if report_matches:
+        logging.info('Sending message to Slack')
         newline = "\n"
         message = f'*Zápasy splňující podmínky:*\n\n' \
                   f'{newline.join(["  • "+str(report_match) for report_match in report_matches])}'
         slack.send_message(message)
+    else:
+        logging.info('Nothing to send')
 
     time_duration = time.time() - time_start
     logging.info(f'Took {time_duration:.2f} seconds')
