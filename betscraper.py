@@ -56,17 +56,24 @@ def init_driver():
 
 
 def parse_match_results(driver):
-    score_elms = driver.find_elements_by_css_selector('tr.stage-live')
+    match_rows_selector = r'tr.stage-live'
+    logging.debug(f'Finding elements matching {match_rows_selector}')
+    score_elms = driver.find_elements_by_css_selector(match_rows_selector)
     scores_dict = {}
     for score_elm in score_elms:
-        elm_id = score_elm.get_attribute('id')
-        elm_type, elm_id = elm_id.split('_', 1)
+        elm_id_full = score_elm.get_attribute('id')
+        elm_type, elm_id = elm_id_full.split('_', 1)
+        logging.debug(f'Found match {elm_id_full} of id {elm_id}')
+
         if elm_id not in scores_dict:
             scores_dict[elm_id] = MatchResult()
+            logging.debug(f'Creating new MatchResult under id {elm_id}')
 
         match_result = scores_dict[elm_id]
         if elm_type == 'g':
+            logging.debug(f'Match is type "g"')
             timer_text = score_elm.find_element_by_css_selector(r'td.timer span').text
+            logging.debug(f'timer_text: {timer_text}')
             if timer_text == 'Přestávka':
                 match_result.state = MatchResult.STATE_PERIOD_PAUSE
             elif timer_text.replace("\n", " ") in ["Konec", "Po prodloužení", "Po nájezdech"]:
@@ -85,11 +92,17 @@ def parse_match_results(driver):
             home_score = int(score_elm.find_element_by_css_selector(r'td.score-home').text)
             match_result.home_name = home_name
             match_result.home_score = home_score
+
+            logging.debug(f'Setting properties on match: state {match_result.state} | period {match_result.period} | '
+                          f'minute {match_result.minute} | home_name {match_result.home_name} | '
+                          f'home_score {match_result.home_score}')
         elif elm_type == 'x':
+            logging.debug(f'Match is type "x"')
             away_name = score_elm.find_element_by_css_selector(r'td.team-away span').text
             away_score = int(score_elm.find_element_by_css_selector(r'td.score-away').text)
             scores_dict[elm_id].away_name = away_name
             scores_dict[elm_id].away_score = away_score
+            logging.debug(f'Setting properties on match: away_name {away_name} | away_score {away_score}')
         else:
             raise NotImplementedError
 
@@ -99,17 +112,22 @@ def parse_match_results(driver):
 def filter_almost_finished_draws(match_results: List[MatchResult]):
     result = []
     for match_result in match_results:
+        logging.debug(f'Filtering match result {match_result}')
         if not match_result.state == MatchResult.STATE_LIVE:
+            logging.debug(f'  > match not live, discarding')
             continue
 
-        if not match_result.period in [3, MatchResult.PERIOD_OVERTIME]:
+        if match_result.period not in [3, MatchResult.PERIOD_OVERTIME]:
+            logging.debug(f'  > match not in last period, discarding')
             continue
 
         if match_result.minute < 19:
+            logging.debug(f'  > match minute not >=19, discarding')
             continue
 
         # TODO check jestli je remíza
 
+        logging.debug(f'  > adding match to result')
         result.append(match_result)
 
     return result
