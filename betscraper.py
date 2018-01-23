@@ -137,8 +137,8 @@ def filter_almost_finished_draws(match_results: List[MatchResult]):
             continue
 
         if match_result.period == 3:
-            if match_result.minute < 19:
-                logging.debug(f'  > match minute not >=19, discarding')
+            if match_result.minute < 20:
+                logging.debug(f'  > match minute not >=20, discarding')
                 continue
         elif match_result.period == MatchResult.PERIOD_OVERTIME:
             # TODO detekovat přestávku před prodloužením
