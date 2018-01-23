@@ -3,6 +3,7 @@ import datetime
 import os
 import time
 from typing import List
+import persistence
 
 from selenium import webdriver
 
@@ -130,7 +131,8 @@ def parse_match_results(driver):
     return scores_dict
 
 
-def filter_almost_finished_draws(match_results: List[MatchResult]):
+def filter_almost_finished_draws(match_results: List[MatchResult], match_reports):
+    """match_reports is a dict of {match_id: MatchReport}"""
     result = []
     for match_result in match_results:
         logging.debug(f'Filtering match result {match_result}')
@@ -171,7 +173,13 @@ def main():
     time_start = time.time()
     driver = init_driver()
     res = parse_match_results(driver)
-    report_matches = filter_almost_finished_draws(list(res.values()))
+
+    match_reports = persistence.load_match_reports()
+    report_matches = filter_almost_finished_draws(list(res.values()), match_reports)
+
+    # TODO vymazat starý zápasy
+    persistence.save_match_reports(match_reports)
+
 
     if report_matches:
         logging.info('Sending message to Slack')
