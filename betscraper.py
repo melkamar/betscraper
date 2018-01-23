@@ -7,6 +7,9 @@ from selenium import webdriver
 
 import slack
 
+NEWLINE = "\n"
+ESCAPED_NEWLINE = "\n"
+
 
 class MatchResult:
     STATE_UNKNOWN = 1
@@ -74,7 +77,7 @@ def parse_match_results(driver):
         if elm_type == 'g':
             logging.debug(f'Match is type "g"')
             timer_text = score_elm.find_element_by_css_selector(r'td.timer span').text
-            logging.debug(f'timer_text: {timer_text}')
+            logging.debug(f'timer_text: {timer_text.replace(NEWLINE, ESCAPED_NEWLINE)}')
             if timer_text == 'Přestávka':
                 match_result.state = MatchResult.STATE_PERIOD_PAUSE
             elif timer_text.replace("\n", " ") in ["Konec", "Po prodloužení", "Po nájezdech"]:
