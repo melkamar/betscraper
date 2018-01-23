@@ -136,12 +136,17 @@ def filter_almost_finished_draws(match_results: List[MatchResult]):
             logging.debug(f'  > match not live, discarding')
             continue
 
-        if match_result.period not in [3, MatchResult.PERIOD_OVERTIME]:
+        if match_result.period == 3:
+            if match_result.minute < 19:
+                logging.debug(f'  > match minute not >=19, discarding')
+                continue
+        elif match_result.period == MatchResult.PERIOD_OVERTIME:
+            # TODO detekovat přestávku před prodloužením
+            if match_result.minute > 1:
+                logging.debug(f'  > match in overtime and minute >1, discarding')
+                continue
+        else:
             logging.debug(f'  > match not in last period, discarding')
-            continue
-
-        if match_result.minute < 19:
-            logging.debug(f'  > match minute not >=19, discarding')
             continue
 
         if match_result.home_score != match_result.away_score:
