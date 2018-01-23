@@ -2,7 +2,7 @@ import json
 import time
 import os
 
-MATCH_REPORTS_FN = 'match_reports.json'
+MATCH_REPORTS_FN = 'persistent/match_reports.json'
 
 
 def json_encode_status(match_report_status):
