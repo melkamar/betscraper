@@ -123,13 +123,15 @@ def filter_almost_finished_draws(match_results: List[MatchResult]):
 
         if match_result.period not in [3, MatchResult.PERIOD_OVERTIME]:
             logging.debug(f'  > match not in last period, discarding')
-            # continue
+            continue
 
         if match_result.minute < 19:
             logging.debug(f'  > match minute not >=19, discarding')
             continue
 
-        # TODO check jestli je remíza, odkomentovat continue
+        if match_result.home_score != match_result.away_score:
+            logging.debug(f'  > match scores do not match, discarding')
+            continue
 
         logging.debug(f'  > adding match to result')
         result.append(match_result)
