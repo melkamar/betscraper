@@ -23,7 +23,7 @@ class MatchResult:
     PERIOD_OVERTIME = 4
     PERIOD_PENALTIES = 5
 
-    def __init__(self):
+    def __init__(self, match_id):
         self.state = MatchResult.STATE_UNKNOWN
         self.minute = None
         self.period = None
@@ -33,6 +33,7 @@ class MatchResult:
         self.away_score = None
         self.link = None
         self.third_period_filled_in = False
+        self.id = match_id
 
     def _time_to_str(self):
         if self.state == MatchResult.STATE_UNKNOWN:
@@ -68,7 +69,7 @@ def parse_element(score_elm, scores_dict):
     logging.debug(f'Found match {elm_id_full} of id {elm_id}')
 
     if elm_id not in scores_dict:
-        scores_dict[elm_id] = MatchResult()
+        scores_dict[elm_id] = MatchResult(elm_id)
         logging.debug(f'Creating new MatchResult under id {elm_id}')
 
     match_result = scores_dict[elm_id]
@@ -118,7 +119,7 @@ def parse_element(score_elm, scores_dict):
 
 
 def parse_match_results(driver):
-    match_rows_selector = r'tr.stage-live'
+    match_rows_selector = r'tr.stage-finished'
     score_elms = driver.find_elements_by_css_selector(match_rows_selector)
     logging.debug(f'Found {len(score_elms)} elements matching {match_rows_selector}')
     scores_dict = {}
@@ -135,33 +136,66 @@ def filter_almost_finished_draws(match_results: List[MatchResult], match_reports
     """match_reports is a dict of {match_id: MatchReport}"""
     result = []
     for match_result in match_results:
+        try:
+            match_report = match_reports[match_result.id]
+        except KeyError:
+            match_report = persistence.MatchReportStatus()
+            match_reports[match_result.id] = match_report
+
         logging.debug(f'Filtering match result {match_result}')
-        if match_result.state == MatchResult.STATE_LIVE:
-            pass
-        elif match_result.state == MatchResult.STATE_PERIOD_PAUSE and match_result.third_period_filled_in:
-            pass
-        else:
-            logging.debug(f'  > match not live, discarding')
-            continue
-
-        if match_result.period == 3:
-            if match_result.minute < 20:
-                logging.debug(f'  > match minute not >=20, discarding')
-                continue
-        elif match_result.period == MatchResult.PERIOD_OVERTIME:
-            if match_result.minute > 1:
-                logging.debug(f'  > match in overtime and minute >1, discarding')
-                continue
-        else:
-            logging.debug(f'  > match not in last period, discarding')
-            continue
-
         if match_result.home_score != match_result.away_score:
             logging.debug(f'  > match scores do not match, discarding')
             continue
 
-        logging.debug(f'  > adding match to result')
-        result.append(match_result)
+        if match_result.state == MatchResult.STATE_LIVE:
+            if match_result.period == 3:
+                if match_result.minute == 15:
+                    if not match_report.sent_56_mark:
+                        logging.debug('  > adding match, 55th minute mark')
+                        result.append(match_result)
+                        match_report.sent_56_mark = True
+                    else:
+                        logging.debug('  > discarding match, 55th minute mark already set')
+                    continue
+
+                if match_result.minute == 20:
+                    if not match_report.sent_60_mark:
+                        logging.debug('  > adding match, 60th minute mark')
+                        result.append(match_result)
+                        match_report.sent_60_mark = True
+                    else:
+                        logging.debug('  > discarding match, 60th minute mark already set')
+                    continue
+
+            if match_result.period == MatchResult.PERIOD_OVERTIME:
+                if match_result.minute == 1:
+                    if not match_report.sent_overtime_pause_mark:
+                        logging.debug('  > adding match, pre-overtime')
+                        result.append(match_result)
+                        match_report.sent_overtime_pause_mark = True
+                    else:
+                        logging.debug('  > discarding match, pre-overtime mark already set')
+                    continue
+
+        if match_result.state == MatchResult.STATE_PERIOD_PAUSE and match_result.third_period_filled_in:
+            if not match_report.sent_overtime_pause_mark:
+                logging.debug('  > adding match, pre-overtime')
+                result.append(match_result)
+                match_report.sent_overtime_pause_mark = True
+            else:
+                logging.debug('  > discarding match, pre-overtime mark already set')
+            continue
+
+        if match_result.state == MatchResult.STATE_ENDED:
+            if not match_report.sent_56_mark:
+                logging.debug('  > adding match, test minute mark')
+                result.append(match_result)
+                match_report.sent_56_mark = True
+            else:
+                logging.debug('  > discarding match, test minute mark already set')
+            continue
+
+        logging.debug('  > no add-condition met, discarding')
 
     return result
 
@@ -177,9 +211,7 @@ def main():
     match_reports = persistence.load_match_reports()
     report_matches = filter_almost_finished_draws(list(res.values()), match_reports)
 
-    # TODO vymazat starý zápasy
     persistence.save_match_reports(match_reports)
-
 
     if report_matches:
         logging.info('Sending message to Slack')
@@ -193,7 +225,8 @@ def main():
 
     time_duration = time.time() - time_start
     logging.info(f'Took {time_duration:.2f} seconds')
-    logging.info(res)
+    logging.info(f'All matches: {res}')
+    logging.info(f'Filtered matches: {report_matches}')
 
 
 if __name__ == '__main__':
