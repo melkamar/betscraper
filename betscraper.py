@@ -10,7 +10,7 @@ from selenium import webdriver
 import slack
 
 NEWLINE = "\n"
-ESCAPED_NEWLINE = "\n"
+ESCAPED_NEWLINE = "\\n"
 
 
 class MatchResult:
@@ -225,7 +225,7 @@ def main():
 
     time_duration = time.time() - time_start
     logging.info(f'Took {time_duration:.2f} seconds')
-    logging.info(f'All matches: {res}')
+    logging.info(f'All live matches: {res}')
     logging.info(f'Filtered matches: {report_matches}')
 
 

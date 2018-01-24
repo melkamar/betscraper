@@ -70,6 +70,8 @@ def _filter_old_match_reports(match_reports):
         match_id: match_report
         for match_id, match_report in match_reports.items()
         if time.time() - match_report.last_updated < 5 * 60 * 60  # Remove entries older than 5 hours
+        # Only save data for matches where at least something was reported - else just create it blank on next read
+        and (match_report.sent_56_mark or match_report.sent_60_mark or match_report.sent_overtime_pause_mark)
     }
 
 
