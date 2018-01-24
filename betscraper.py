@@ -119,7 +119,7 @@ def parse_element(score_elm, scores_dict):
 
 
 def parse_match_results(driver):
-    match_rows_selector = r'tr.stage-finished'
+    match_rows_selector = r'tr.stage-live'
     score_elms = driver.find_elements_by_css_selector(match_rows_selector)
     logging.debug(f'Found {len(score_elms)} elements matching {match_rows_selector}')
     scores_dict = {}
