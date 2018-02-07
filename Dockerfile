@@ -6,5 +6,7 @@ RUN chmod +x /install-phantomjs.sh && /install-phantomjs.sh
 
 ENV TZ=Europe/Prague
 RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
+COPY ./run-betscraper.sh /run-betscraper.sh
 
-CMD ["python", "/betscraper/betscraper.py"]
+CMD ["/run-betscraper.sh"]
+
