@@ -1,6 +1,7 @@
 import requests
 import os
 import logging
+import time
 
 
 def send_message(text):
@@ -11,9 +12,16 @@ def send_message(text):
         return
 
     payload = {
-        "text": text,
-        "icon_emoji": ':ice_hockey_stick_and_puck:',
-        "username": "Hokejbot"
+        "icon_emoji": ":ice_hockey_stick_and_puck:",
+        "username": "Hokejbot",
+        "attachments": [
+            {
+                "fallback": "HELLO WORLD THERE\nTHIS IS PATRICK",
+                "color": "#36a64f",
+                "text": text,
+                "ts": time.time()
+            }
+        ]
     }
 
     logging.info(f'Sending slack message: {payload}')
