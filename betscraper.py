@@ -216,8 +216,7 @@ def main():
     if report_matches:
         logging.info('Sending message to Slack')
         newline = "\n"
-        message = f'{datetime.datetime.now().strftime("%H:%M:%S")}\n' \
-                  f'*Zápasy splňující podmínky:*\n\n' \
+        message = f'*Zápasy splňující podmínky:*\n\n' \
                   f'{newline.join(["  • "+str(report_match) for report_match in report_matches])}'
         slack.send_message(message)
     else:
