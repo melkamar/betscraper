@@ -16,7 +16,7 @@ def send_message(text):
         "username": "Hokejbot",
         "attachments": [
             {
-                "fallback": "HELLO WORLD THERE\nTHIS IS PATRICK",
+                "fallback": text,
                 "color": "#36a64f",
                 "text": text,
                 "ts": time.time()
